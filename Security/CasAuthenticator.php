@@ -3,7 +3,9 @@
 namespace L3\Bundle\CasGuardBundle\Security;
 
 use L3\Bundle\CasGuardBundle\Event\CasAuthenticationFailureEvent;
+
 use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
+use L3\Bundle\CasGuardBundle\Entity\CasUserInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -33,7 +35,7 @@ class CasAuthenticator extends AbstractAuthenticator {
 
     public function supports(Request $request): ?bool
     {
-        $session = $request->getSession();
+	$session = $request->getSession();
         
         if ($session->has('impersonate_token')) {
             return false;
@@ -156,6 +158,10 @@ class CasAuthenticator extends AbstractAuthenticator {
     {
         if (\phpCAS::isSessionAuthenticated()) {
             $token->setAttributes(\phpCAS::getAttributes());
+            $user = $token->getUser();
+            if ($user instanceof CasUserInterface) {
+                $user->setAttributes(\phpCAS::getAttributes());
+            }
         }
         
         return null;
